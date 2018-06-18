@@ -1,35 +1,24 @@
 cmake_minimum_required(VERSION 2.6)
+
+set (CMAKE_CXX_STANDARD 14)
+set(CMAKE_BUILD_TYPE Release)
+
 project(apriltags)
 
-#add_definitions(-pg) #"-fopenmp)
-
-# pull in the pods macros. See cmake/pods.cmake for documentation
-set(POD_NAME apriltags)
-include(cmake/pods.cmake)
-
-file(GLOB SOURCE_FILES "src/*.cc")
-include_directories(AprilTags . /opt/local/include)
-add_library(apriltags ${SOURCE_FILES})
+set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
 
 find_package(OpenCV)
 include_directories(${OpenCV_INCLUDE_DIRS})
-target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
-pods_use_pkg_config_packages(apriltags eigen3)
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  target_link_libraries(apriltags -L/opt/local/lib/) # MacPorts special treatment...
-else (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  pods_use_pkg_config_packages(apriltags libv4l2)
-endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
-pods_install_libraries(apriltags)
-
+file(GLOB SOURCE_FILES "src/*.cc")
 file(GLOB header_files "AprilTags/*.h")
-pods_install_headers(${header_files} DESTINATION AprilTags/)
-
-pods_install_pkg_config_file(apriltags
-    LIBS -lapriltags
-    REQUIRES eigen3 opencv2
-    VERSION 1.0.0)
-
+include_directories(AprilTags . /opt/local/include)
+add_library(${PROJECT_NAME} ${SOURCE_FILES})
 add_subdirectory(example)
+
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} v4l2) #-pg) #-fopenmp)
